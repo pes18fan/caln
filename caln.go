@@ -192,11 +192,11 @@ type BSDate struct {
 
 func BSDateFromGregorian(gregorian time.Time) BSDate {
 	year := gregorian.Year()
-
-	monthStarts := getMonthStarts(gregorian.Year() + 57)
+	monthStarts := getMonthStarts(year + 57)
 
 	var nepYear int
 	if gregorian.Before(monthStarts[0]) {
+		monthStarts = getMonthStarts(year + 56)
 		nepYear = year + 56
 	} else {
 		nepYear = year + 57
@@ -205,7 +205,7 @@ func BSDateFromGregorian(gregorian time.Time) BSDate {
 	nepMonth := 0
 	nepDay := 0
 	firstDayOfNepYear := monthStarts[0]
-	gregorianDayGap := int(gregorian.Sub(firstDayOfNepYear).Hours() / 24)
+	gregorianDayGap := int(math.Floor(gregorian.Sub(firstDayOfNepYear).Hours())) / 24
 
 	monthLengths := getMonthLengthsFromStarts(nepYear, monthStarts)
 	for i, days := range monthLengths {
