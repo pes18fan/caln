@@ -66,7 +66,7 @@ func BSDateFromGregorian(gregorian time.Time) BSDate {
 	}
 	monthStarts := getMonthStarts(nepYear)
 
-	nepMonth := 0
+	nepMonth := 0 // cannot be zero, this is just a placeholder
 	nepDay := 0
 	firstDayOfNepYear := monthStarts[0]
 	gregorianDayGap := int(math.Floor(gregorian.Sub(firstDayOfNepYear).Hours())) / 24
@@ -81,6 +81,7 @@ func BSDateFromGregorian(gregorian time.Time) BSDate {
 
 		gregorianDayGap -= days
 	}
+	assert(Baisakh <= BSMonth(nepMonth) && BSMonth(nepMonth) <= Chaitra, "nepMonth is not in valid range")
 
 	return BSDate{nepYear, BSMonth(nepMonth), nepDay}
 }
