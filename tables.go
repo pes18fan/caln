@@ -1,5 +1,7 @@
 package caln
 
+// For brevity, I shall refer to Bikram Sambat as BS throughout.
+
 import (
 	"caln/julianday"
 	"fmt"
