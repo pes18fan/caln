@@ -56,15 +56,15 @@ type BSDate struct {
 
 func BSDateFromGregorian(gregorian time.Time) BSDate {
 	year := gregorian.Year()
-	monthStarts := getMonthStarts(year + 57)
+	firstDayOfGregorianPlus57 := getDateForFirstDayOfMonth(year+57, Baisakh)
 
 	var nepYear int
-	if gregorian.Before(monthStarts[0]) {
-		monthStarts = getMonthStarts(year + 56)
+	if gregorian.Before(firstDayOfGregorianPlus57) {
 		nepYear = year + 56
 	} else {
 		nepYear = year + 57
 	}
+	monthStarts := getMonthStarts(nepYear)
 
 	nepMonth := 0
 	nepDay := 0

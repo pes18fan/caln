@@ -70,6 +70,21 @@ func getMonthStarts(bsYear int) [13]time.Time {
 	return monthStarts
 }
 
+func getDateForFirstDayOfMonth(bsYear int, bsMonth BSMonth) time.Time {
+	var adMonth time.Month
+	if bsMonth == Paush {
+		adMonth = time.December
+	} else {
+		adMonth = (time.April + time.Month(bsMonth) - 1) % 12
+	}
+	adYear := bsYear - 57
+	lo, hi :=
+		float64(julianday.Number(adYear, adMonth, 10)),
+		float64(julianday.Number(adYear, adMonth, 18))
+	date, _ := getDateForLongitude(lo, hi, float64(bsMonth-1)*(math.Pi/6))
+	return date
+}
+
 // Get the BS date and Julian day corresponding to a certain sidereal longitude
 // via bisection, given two lo and hi Julian day values known to be just before
 // and just after the moment of that longitude.
@@ -106,11 +121,6 @@ func getDateForLongitude(lo, hi, lon float64) (time.Time, float64) {
 	// anymore.
 	return time.Date(sankranti.Year(), sankranti.Month(),
 		sankranti.Day(), 0, 0, 0, 0, sankranti.Location()), jd
-}
-
-func getMonthLengths(bsYear int) [12]int {
-	monthStarts := getMonthStarts(bsYear)
-	return getMonthLengthsFromStarts(monthStarts)
 }
 
 func getMonthLengthsFromStarts(monthStarts [13]time.Time) [12]int {
