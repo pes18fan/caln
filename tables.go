@@ -85,9 +85,9 @@ func getDateForFirstDayOfMonth(bsYear int, bsMonth BSMonth) time.Time {
 	return date
 }
 
-// Get the BS date and Julian day corresponding to a certain sidereal longitude
-// via bisection, given two lo and hi Julian day values known to be just before
-// and just after the moment of that longitude.
+// Get the corresponding time.Time and Julian day corresponding to a certain
+// sidereal longitude via bisection, given two lo and hi Julian day values
+// known to be just before and just after the moment of that longitude.
 func getDateForLongitude(lo, hi, lon float64) (time.Time, float64) {
 	f := func(x float64) float64 {
 		// We need to wrap the sidereal longitude function with another, as
