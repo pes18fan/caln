@@ -48,47 +48,9 @@ func getMonthStarts(bsYear int) [13]time.Time {
 		float64(julianday.Number(bsYear-57, time.April, 10)),
 		float64(julianday.Number(bsYear-57, time.April, 18))
 
-	// We need this funny little function-creating-function because we need a
-	// function to pass into the bisector, but that function also needs to
-	// calculate different results based on the target we want to bisect at.
-	fMaker := func(target float64) func(float64) float64 {
-		return func(x float64) float64 {
-			// We need to wrap the sidereal longitude function with another, as
-			// it does not return negative values.
-			// We therefore interpret longitudes greater than pi as negative.
-			l := sunSiderealLongitude(x) - target
-			if l > math.Pi {
-				l = l - 2*math.Pi
-			}
-			return l
-		}
-	}
-
-	ktm, err := time.LoadLocation("Asia/Kathmandu")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load Asia/Kathmandu location: %v", err))
-	}
 	for i := range 12 {
 		target := float64(i) * (math.Pi / 6) // i times 30 degrees
-		f := fMaker(target)
-		jd := bisect(lo, hi, f)
-
-		// We have the Julian day for the start of this month! We can now
-		// convert it to a localized time.Time (which is done by ToTime through
-		// conversion into the Unix timestamp).
-		sankranti := julianday.ToTime(jd).In(ktm)
-
-		// If the Sankranti falls after sunset, Nepal assigns the new month
-		// to the next day. So, we need to account for that.
-		sunset := sunsetTimeForKathmandu(sankranti)
-		if sankranti.After(sunset) {
-			sankranti = sankranti.AddDate(0, 0, 1)
-		}
-
-		// Remove the hour, minute, second etc components, we don't need that
-		// anymore.
-		sankranti = time.Date(sankranti.Year(), sankranti.Month(),
-			sankranti.Day(), 0, 0, 0, 0, sankranti.Location())
+		sankranti, jd := getDateForLongitude(lo, hi, target)
 
 		// Update lo and hi. lo can be the Julian day we just calculated, and
 		// hi can be, about 40 days past that (as that is further than
@@ -103,16 +65,47 @@ func getMonthStarts(bsYear int) [13]time.Time {
 	// To calculate Chaitra's length we need to repeat that above loop
 	// calculation just one more time for the target 0 (next Baisakh), with the
 	// accumulated lo and hi.
-	jd := bisect(lo, hi, fMaker(0))
+	sankranti, _ := getDateForLongitude(lo, hi, 0)
+	monthStarts[12] = sankranti
+	return monthStarts
+}
+
+// Get the BS date and Julian day corresponding to a certain sidereal longitude
+// via bisection, given two lo and hi Julian day values known to be just before
+// and just after the moment of that longitude.
+func getDateForLongitude(lo, hi, lon float64) (time.Time, float64) {
+	f := func(x float64) float64 {
+		// We need to wrap the sidereal longitude function with another, as
+		// it does not return negative values.
+		// We therefore interpret longitudes greater than pi as negative.
+		l := sunSiderealLongitude(x) - lon
+		if l > math.Pi {
+			l = l - 2*math.Pi
+		}
+		return l
+	}
+	jd := bisect(lo, hi, f)
+
+	ktm, err := time.LoadLocation("Asia/Kathmandu")
+	if err != nil {
+		panic(fmt.Sprintf("failed to load Asia/Kathmandu location: %v", err))
+	}
+	// We have the Julian day for the start of this month! We can now
+	// convert it to a localized time.Time (which is done by ToTime through
+	// conversion into the Unix timestamp).
 	sankranti := julianday.ToTime(jd).In(ktm)
+
+	// If the Sankranti falls after sunset, Nepal assigns the new month
+	// to the next day. So, we need to account for that.
 	sunset := sunsetTimeForKathmandu(sankranti)
 	if sankranti.After(sunset) {
 		sankranti = sankranti.AddDate(0, 0, 1)
 	}
-	sankranti = time.Date(sankranti.Year(), sankranti.Month(),
-		sankranti.Day(), 0, 0, 0, 0, sankranti.Location())
-	monthStarts[12] = sankranti
-	return monthStarts
+
+	// Remove the hour, minute, second etc components, we don't need that
+	// anymore.
+	return time.Date(sankranti.Year(), sankranti.Month(),
+		sankranti.Day(), 0, 0, 0, 0, sankranti.Location()), jd
 }
 
 func getMonthLengths(bsYear int) [12]int {
