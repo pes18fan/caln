@@ -13,10 +13,18 @@ lookup table which is a table of precalculated coefficients based on the VSOP87
 mathematical model; however this is a different kind of lookup table because it
 is just math results.
 
-caln is still based on a lot of approximations, though, as there is not really
-any method I know of to do an AD-to-BS conversion exactly without any such
-approximations. Hence, I can't guarantee that it will ALWAYS be correct; but
-for the most part it should be!
+## Note on accuracy
+
+While caln is still based on a lot of approximations as there is not really any
+method I know of to do an AD-to-BS conversion exactly without any such
+approximations. Regardless of that; from my testing, it is accurate to within
+minutes for finding the corresponding Gregorian date for specific
+[sankranti](https://en.wikipedia.org/wiki/Sankranti), which are the base for
+calculating the first day of each month. The actual problem though is that the
+assignment of the start of a month in the official BS calendar in Nepal is not
+as simple as assigning the day when the sankranti occurs; there is seemingly no
+specific known way to do so. Hence, it is quite possible that caln fails for
+some dates, it is not fully reliable. But for the most part it works!
 
 ## Info about VSOP87 tables
 
